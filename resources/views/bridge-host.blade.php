@@ -309,10 +309,10 @@
           ▶ Apri Buzzer
         </button>
         <button class="btn-correct" id="btn-correct" onclick="doCorrect()" disabled>
-          ✓ Corretto +1
+          ✓ Corretto
         </button>
         <button class="btn-wrong" id="btn-wrong" onclick="doWrong()" disabled>
-          ✗ Sbagliato −¼
+          ✗ Sbagliato
         </button>
         <button onclick="doReset()" class="btn-danger">
           ↺ Reset Round
