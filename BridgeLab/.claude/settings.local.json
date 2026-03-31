@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -NoProfile -Command \"Get-ChildItem 'C:\\\\Dev\\\\BridgeLab' | Select-Object Name\")",
+      "Bash(timeout 6 dotnet run 2>&1 || true)",
+      "Bash(powershell.exe -NoProfile -Command \"Get-Process | Where-Object { \\\\$_.Name -match 'Bridge|Smart' } | Select-Object Name,Id\")",
+      "Bash(cmd /c \"tasklist | findstr /I Bridge\")",
+      "Bash(cmd /c \"curl -s http://127.0.0.1:8766/health\")",
+      "Bash(netstat -ano 2>/dev/null | grep -E \"8766|8765|8000\" | head -10)",
+      "Bash(timeout 8 dotnet run 2>&1 || true)",
+      "Bash(taskkill //F //IM BridgeLab.exe 2>/dev/null || true; sleep 1; timeout 8 dotnet run 2>&1 || true)",
+      "Bash(taskkill //F //IM BridgeLab.exe 2>/dev/null; sleep 1; dotnet run 2>&1 | head -30)",
+      "Bash(taskkill //F //IM BridgeLab.exe 2>/dev/null; sleep 1\ndotnet run --no-launch-profile 2>&1)",
+      "Bash(taskkill //F //IM BridgeLab.exe 2>/dev/null; sleep 1 && dotnet build 2>&1 | tail -4)",
+      "Bash(taskkill //F //IM BridgeLab.exe 2>/dev/null; sleep 1 && dotnet build 2>&1 | tail -5)",
+      "Bash(find /c/Dev/BuzzIT/BuzzIT -name \"*.config\" -o -name \"*.json\" -o -name \"app.config\" -o -name \"settings*\" 2>/dev/null | head -20)",
+      "Bash(cd /c/laragon/www/bridge-test && composer require laravel/reverb --no-interaction 2>&1 | tail -5)",
+      "Bash(cd /c/laragon/www/bridge-test && php artisan reverb:install --no-interaction 2>&1)",
+      "Bash(cd /c/laragon/www/bridge-test && sed -i 's/BROADCAST_CONNECTION=log/BROADCAST_CONNECTION=reverb/' .env && grep BROADCAST_CONNECTION .env)"
+    ]
+  }
+}

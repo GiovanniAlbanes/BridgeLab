@@ -1,0 +1,12 @@
+{
+  "base_url": "http://127.0.0.1:8000",
+  "arduino_port": "COM5",
+  "arduino_baud": 9600,
+  "arduino_enabled": true,
+  "dmx_enabled": true,
+  "dmx_base": 33,
+  "dmx_lamps": 4,
+  "reverb_host": "127.0.0.1",
+  "reverb_port": 8080,
+  "reverb_app_key": "yurojodsalfypgyutpkf"
+}

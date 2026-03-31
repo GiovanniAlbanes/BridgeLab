@@ -1,0 +1,18 @@
+{
+  "profiles": {
+    "BridgeLab": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "BRIDGE_BASE_URL": "http://127.0.0.1:8000",
+        "BRIDGE_ARDUINO_PORT": "COM5",
+        "BRIDGE_ARDUINO_BAUD": "9600",
+        "BRIDGE_DMX_ENABLED": "true",
+        "BRIDGE_DMX_BASE": "33",
+        "BRIDGE_DMX_LAMPS": "4",
+        "REVERB_HOST": "127.0.0.1",
+        "REVERB_PORT": "8080",
+        "REVERB_APP_KEY": "yurojodsalfypgyutpkf"
+      }
+    }
+  }
+}
