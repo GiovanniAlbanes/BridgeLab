@@ -304,6 +304,10 @@
 
     <div class="panel">
       <div class="panel-title">Controlli partita</div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);margin-bottom:10px;cursor:pointer;">
+        <input type="checkbox" id="chk-early" style="accent-color:#fb923c;width:15px;height:15px;">
+        Check Early
+      </label>
       <div class="btn-grid">
         <button class="btn-open btn-full" id="btn-open" onclick="doOpen()">
           ▶ Apri Buzzer
@@ -409,7 +413,7 @@ function startCountdown(startMs) {
 
     _cdStartedAt = startMs;
 
-    const end = startMs + 3000;
+    const end = Date.now() + 3000;
 
     if (_cdInterval) clearInterval(_cdInterval);
 
@@ -613,7 +617,7 @@ function renderBuzzList(buzzes, earlyBuzzes, teams) {
       <div class="buzz-order">!</div>
       <div class="buzz-info">
         <div class="buzz-name" style="color:#fb923c">${escHtml(name)}</div>
-        <div class="buzz-time">CH ${b.channel} Â· anticipo ${fmtTime(b.at)}</div>
+        <div class="buzz-time">CH ${b.channel}· anticipo ${fmtTime(b.at)}</div>
       </div>
     </div>`;
   });
@@ -662,7 +666,11 @@ async function doCloseBridge() {
   setTimeout(() => { btn.textContent = '✕ Chiudi Bridge'}, 1500);
 }
 
-async function doOpen()        { if (!bridgeOnline) return; await post('/host/open'); }
+async function doOpen() {
+  if (!bridgeOnline) return;
+  const checkEarly = document.getElementById('chk-early').checked;
+  await post('/host/open', { check_early: checkEarly });
+}
 async function doCorrect()     { await post('/host/correct'); }
 async function doWrong()       { await post('/host/wrong'); }
 async function doReset()       { await post('/host/reset'); }
