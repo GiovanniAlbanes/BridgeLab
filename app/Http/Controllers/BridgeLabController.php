@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Events\BridgeCommandDispatched;
+use App\Events\ProjectionUpdated;
+use App\Models\Question;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -85,7 +87,14 @@ class BridgeLabController extends Controller
             return response()->json(['ok' => true, 'ignored' => $state['phase']]);
         }
 
-        $isEarly = ($state['check_early'] ?? false) && ($data['early'] ?? false);
+        // Considera anticipata se check_early è attivo E:
+        // - il client lo dichiara (bridge fisico/sim), OPPURE
+        // - siamo server-side entro i 3s dall'apertura (sicurezza extra)
+        $cdSecs          = (float) ($state['countdown_duration'] ?? 3);
+        $withinCountdown = isset($state['opened_at'])
+            && (microtime(true) - strtotime($state['opened_at'])) < $cdSecs;
+        $isEarly = ($state['check_early'] ?? false)
+            && (($data['early'] ?? false) || $withinCountdown);
 
         if ($isEarly) {
             if (! collect($state['early_buzzes'] ?? [])->contains('channel', $channel)) {
@@ -178,7 +187,8 @@ class BridgeLabController extends Controller
     {
         $this->saveState($this->emptyState());
         $this->enqueue(['type' => 'all_off']);
-        $this->broadcastState(); // 👈 AGGIUNGI
+        $this->broadcastState();
+        $this->broadcastProjectionReset();
         return response()->json(['ok' => true]);
     }
 
@@ -190,16 +200,18 @@ class BridgeLabController extends Controller
         $state['buzzes']    = [];
         $state['early_buzzes'] = [];
         $state['winner']    = null;
-        $state['check_early'] = (bool) $request->input('check_early', false);
-        $state['opened_at'] = now()->toIso8601String();
-        $state['opened_at_ms'] = now()->getTimestampMs();
+        $state['check_early']        = (bool) $request->input('check_early', false);
+        $state['countdown_duration'] = min(max((int) $request->input('countdown_duration', 3), 1), 30);
+        $state['countdown_color']    = $request->input('countdown_color', '#fb923c');
+        $state['opened_at']          = now()->toIso8601String();
         $this->saveState($state);
         $this->enqueue([
             'type'      => 'open_buzzer',
             'opened_at' => $state['opened_at'],
         ]);
 
-        $this->broadcastState(); // 👈 AGGIUNGI
+        $this->broadcastState();
+        $this->broadcastProjectionReset();
 
         return response()->json(['ok' => true]);
     }
@@ -266,6 +278,20 @@ class BridgeLabController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    /** Light a channel green (correct) or red (wrong) without changing state */
+    public function answerLight(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'channel'    => ['required', 'integer', 'min:1'],
+            'is_correct' => ['required', 'boolean'],
+        ]);
+
+        $type = $data['is_correct'] ? 'correct_channel' : 'wrong_channel';
+        $this->enqueue(['type' => $type, 'channel' => (int) $data['channel']]);
+
+        return response()->json(['ok' => true]);
+    }
+
     /** Manual DMX buzz override from host UI */
     public function buzzChannel(Request $request): JsonResponse
     {
@@ -286,6 +312,7 @@ class BridgeLabController extends Controller
             $t['score'] = 0.0;
         }
         Cache::forever(self::TEAMS_KEY, $teams);
+        $this->broadcastState();
 
         return response()->json(['ok' => true]);
     }
@@ -305,11 +332,13 @@ class BridgeLabController extends Controller
     private function emptyState(): array
     {
         return [
-            'phase'        => 'idle',
-            'winner'       => null,
-            'buzzes'       => [],
-            'early_buzzes' => [],
-            'opened_at'    => null,
+            'phase'              => 'idle',
+            'winner'             => null,
+            'buzzes'             => [],
+            'early_buzzes'       => [],
+            'opened_at'          => null,
+            'countdown_duration' => 3,
+            'countdown_color'    => '#fb923c',
         ];
     }
 
@@ -396,6 +425,32 @@ class BridgeLabController extends Controller
         }
 
         return Carbon::parse($lastSeenAt)->greaterThan(now()->subSeconds(15));
+    }
+
+    private function broadcastProjectionReset(): void
+    {
+        Cache::forever('bl:selected_answer', null);
+
+        $qId      = Cache::get('bl:active_question');
+        $question = $qId ? Question::with('answers')->find($qId) : null;
+        $color    = Cache::get('bl:winner_color', 'yellow');
+
+        $formatted = null;
+        if ($question) {
+            $formatted = [
+                'id'         => $question->id,
+                'text'       => $question->text,
+                'media_url'  => $question->media_path ? '/storage/' . $question->media_path : null,
+                'media_type' => $question->media_type,
+                'answers'    => $question->answers->map(fn ($a) => [
+                    'id'    => $a->id,
+                    'text'  => $a->text,
+                    'value' => $a->value,
+                ])->all(),
+            ];
+        }
+
+        broadcast(new ProjectionUpdated($formatted, null, $color));
     }
 
     private function broadcastState(): void

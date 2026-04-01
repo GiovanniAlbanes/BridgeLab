@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'bridge/heartbeat',
             'bridge/event',
             'bridge/commands/next',
+            'project/active',
+            'project/answer',
+            'project/color',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

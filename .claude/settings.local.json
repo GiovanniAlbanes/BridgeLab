@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git remote:*)",
+      "Bash(gh auth:*)",
+      "Bash(cd C:/laragon/www/bridge-test && php artisan make:migration create_games_table && php artisan make:migration create_questions_table && php artisan make:migration create_answers_table)",
+      "Bash(cd C:/laragon/www/bridge-test && php artisan migrate && php artisan storage:link 2>&1)",
+      "Bash(cd C:/laragon/www/bridge-test && php artisan route:list --path=games 2>&1 | head -20)",
+      "Bash(cd C:/laragon/www/bridge-test && php artisan tinker --execute=\"echo App\\\\Models\\\\Answer::count\\(\\) . ' answers, latest: '; \\\\$a = App\\\\Models\\\\Answer::latest\\(\\)->first\\(\\); echo \\\\$a ? 'id='.\\\\$a->id.' q='.\\\\$a->question_id.' text='.\\\\$a->text : 'none';\")",
+      "Bash(cd C:/laragon/www/bridge-test && php -r \"\ndefine\\('LARAVEL_START', microtime\\(true\\)\\);\nrequire 'vendor/autoload.php';\n\\\\$app = require 'bootstrap/app.php';\n\\\\$app->make\\('Illuminate\\\\Contracts\\\\Console\\\\Kernel'\\)->bootstrap\\(\\);\n\\\\$count = App\\\\Models\\\\Answer::count\\(\\);\necho 'Total answers: ' . \\\\$count . PHP_EOL;\nApp\\\\Models\\\\Answer::latest\\(\\)->get\\(\\)->each\\(function\\(\\\\$a\\) {\n    echo 'id=' . \\\\$a->id . ' q=' . \\\\$a->question_id . ' text=' . \\\\$a->text . PHP_EOL;\n}\\);\n\")",
+      "Bash(cd C:/laragon/www/bridge-test && php artisan config:clear && php artisan cache:clear && php artisan view:clear 2>&1)",
+      "Bash(cd \"C:/laragon/www/bridge-test\" && php artisan config:clear && php artisan cache:clear)",
+      "Bash(cd \"C:/laragon/www/bridge-test\" && php artisan route:clear && php artisan view:clear)",
+      "Bash(cd \"C:/laragon/www/bridge-test\" && php artisan tinker --execute=\"echo app\\('encrypter'\\)->getKey\\(\\) ? 'key ok' : 'no key';\" 2>&1 | head -5)",
+      "Bash(sqlite3 \"E:/OneDrive/Desktop/Adherence.db3\" \".tables\" 2>&1)",
+      "Bash(sqlite3 \"E:/OneDrive/Desktop/Adherence.db3\" \".schema\" 2>&1)",
+      "Bash(sqlite3 \"E:/OneDrive/Desktop/Adherence.db3\" \"SELECT COUNT\\(*\\) FROM games; SELECT COUNT\\(*\\) FROM questions; SELECT COUNT\\(*\\) FROM answers;\" 2>&1)",
+      "Bash(sqlite3 \"E:/OneDrive/Desktop/Adherence.db3\" \"SELECT id, name FROM games;\" 2>&1)",
+      "Bash(sqlite3 \"E:/OneDrive/Desktop/Adherence.db3\" \"SELECT id, game_id, ord, questionText, imageUrls, videoUrls FROM questions LIMIT 5;\" 2>&1)",
+      "Bash(sqlite3 \"E:/OneDrive/Desktop/Adherence.db3\" \"SELECT id, question_id, ord, answer, value FROM answers LIMIT 8;\" 2>&1)",
+      "Bash(cd \"C:/laragon/www/bridge-test\" && php artisan import:db3 \"E:/OneDrive/Desktop/Adherence.db3\" 2>&1)",
+      "Bash(php -r \"echo 'upload_max_filesize: ' . ini_get\\('upload_max_filesize'\\) . PHP_EOL; echo 'post_max_size: ' . ini_get\\('post_max_size'\\) . PHP_EOL; echo 'memory_limit: ' . ini_get\\('memory_limit'\\) . PHP_EOL; echo 'max_execution_time: ' . ini_get\\('max_execution_time'\\) . PHP_EOL; echo 'max_input_time: ' . ini_get\\('max_input_time'\\) . PHP_EOL;\")",
+      "Bash(php -r \"echo php_ini_loaded_file\\(\\);\")"
+    ]
+  }
+}
