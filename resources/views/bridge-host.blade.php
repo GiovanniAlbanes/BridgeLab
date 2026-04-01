@@ -365,14 +365,6 @@
   .sq.drop-above { border-top: 2px solid #3b82f6; }
   .sq.drop-below { border-bottom: 2px solid #3b82f6; }
 
-  /* reorder arrows */
-  .sq-reorder { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
-  .sq-reorder button {
-    background: none; border: 1px solid var(--border); border-radius: 3px;
-    color: var(--muted); font-size: .5rem; padding: 1px 5px; cursor: pointer; line-height: 1.3;
-    transition: background .1s, color .1s;
-  }
-  .sq-reorder button:hover { background: var(--border); color: var(--text); transform: none; }
 
   .sq-num {
     width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
@@ -1087,10 +1079,6 @@ function renderSQ(q, num, currentGameId) {
     return `<div class="sq" data-qid="${q.id}">
       <div class="sq-header" draggable="true" onclick="toggleSQ(${q.id})">
         <span class="sq-drag" onclick="event.stopPropagation()">⠿⠿</span>
-        <div class="sq-reorder">
-          <button onclick="event.stopPropagation(); settingsReorderQ(${q.id}, -1)" title="Su">▲</button>
-          <button onclick="event.stopPropagation(); settingsReorderQ(${q.id}, +1)" title="Giù">▼</button>
-        </div>
         <div class="sq-num">${num}</div>
         <div class="sq-preview">${escHtml(q.text)}</div>
         <div class="sq-chevron">▶</div>
@@ -1104,7 +1092,7 @@ function renderSQ(q, num, currentGameId) {
               <option value="">Sposta in…</option>
               ${moveOpts}
             </select>
-            <input class="sq-pos-input" type="number" value="${q.order}" min="1"
+            <input class="sq-pos-input" type="number" value="${num}" min="1"
                    title="Posizione" style="width:52px;">
             <button class="sq-move-btn" onclick="settingsMoveQ(${q.id}, this)">→</button>
           </div>
@@ -1118,30 +1106,6 @@ function toggleSQ(qId) {
     document.querySelector(`.sq[data-qid="${qId}"]`)?.classList.toggle('open');
 }
 
-function settingsReorderQ(qId, direction) {
-    const list   = document.getElementById('settings-qs-list');
-    const allSqs = [...list.querySelectorAll(':scope > .sq')];
-    const idx    = allSqs.findIndex(el => el.dataset.qid == qId);
-    const swapIdx = idx + direction;
-
-    if (swapIdx < 0 || swapIdx >= allSqs.length) return;
-
-    const a = allSqs[idx];
-    const b = allSqs[swapIdx];
-
-    // DOM swap
-    if (direction === -1) list.insertBefore(a, b);
-    else                  list.insertBefore(b, a);
-
-    // Renumber
-    [...list.querySelectorAll(':scope > .sq')].forEach((el, i) => {
-        el.querySelector('.sq-num').textContent = i + 1;
-    });
-
-    // Persist new order
-    const newOrder = [...list.querySelectorAll(':scope > .sq')].map(el => parseInt(el.dataset.qid));
-    saveSettingsQOrder(newOrder);
-}
 
 async function saveSettingsQOrder(order) {
     await fetch(`/games/${settingsCurrentGameId}/questions/reorder`, {
@@ -1202,6 +1166,8 @@ async function saveSettingsQOrder(order) {
         // Renumber
         [...list.querySelectorAll(':scope > .sq')].forEach((el, i) => {
             el.querySelector('.sq-num').textContent = i + 1;
+            const posInput = el.querySelector('.sq-pos-input');
+            if (posInput) posInput.value = i + 1;
         });
 
         const newOrder = [...list.querySelectorAll(':scope > .sq')].map(el => parseInt(el.dataset.qid));

@@ -177,15 +177,36 @@ class GameController extends Controller
             'position' => ['nullable', 'integer', 'min:1'],
         ]);
 
+        $sourceGameId = $question->game_id;
         $targetGameId = $data['game_id'];
-        $insertOrder  = $data['position'] ?? $question->order;
 
-        // Make room at the target position
-        Question::where('game_id', $targetGameId)
-            ->where('order', '>=', $insertOrder)
-            ->increment('order');
+        // Build ordered list of target-game question IDs (excluding the moved question)
+        $targetIds = Question::where('game_id', $targetGameId)
+            ->where('id', '!=', $question->id)
+            ->orderBy('order')
+            ->pluck('id')
+            ->toArray();
 
-        $question->update(['game_id' => $targetGameId, 'order' => $insertOrder]);
+        // Sequential insert position (default: append at end)
+        $pos = isset($data['position']) ? (int) $data['position'] : count($targetIds) + 1;
+        $pos = max(1, min($pos, count($targetIds) + 1));
+
+        // Move question to target game, then splice into position
+        $question->update(['game_id' => $targetGameId]);
+        array_splice($targetIds, $pos - 1, 0, [$question->id]);
+
+        // Renumber target game sequentially
+        foreach ($targetIds as $i => $id) {
+            Question::where('id', $id)->update(['order' => $i + 1]);
+        }
+
+        // Renumber source game if different
+        if ($sourceGameId !== $targetGameId) {
+            Question::where('game_id', $sourceGameId)
+                ->orderBy('order')
+                ->get()
+                ->each(fn ($q, $i) => $q->update(['order' => $i + 1]));
+        }
 
         return response()->json(['ok' => true]);
     }
