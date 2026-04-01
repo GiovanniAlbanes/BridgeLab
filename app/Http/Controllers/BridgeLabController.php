@@ -147,9 +147,10 @@ class BridgeLabController extends Controller
             fclose($sock);
             // Reverb already running — skip
         } else {
-            $phpBin = PHP_BINARY;
+            $phpBin = trim((string) shell_exec('where php.exe 2>nul')) ?: 'php';
+            $phpBin = explode("\n", $phpBin)[0];
             $this->runHiddenPowerShell(
-                "Start-Process -FilePath '$phpBin' -ArgumentList 'artisan','reverb:start' -WorkingDirectory '" . self::APP_DIR . "' -WindowStyle Hidden"
+                "Start-Process -FilePath '$phpBin' -ArgumentList 'artisan','reverb:start','--host=0.0.0.0' -WorkingDirectory '" . self::APP_DIR . "' -WindowStyle Hidden"
             );
             usleep(1500000); // 1.5s — give Reverb time to bind
         }
@@ -157,7 +158,7 @@ class BridgeLabController extends Controller
         $this->runHiddenPowerShell(
             "Start-Process -FilePath '" . self::BRIDGE_EXE . "' -WorkingDirectory '" . self::BRIDGE_DIR . "' -WindowStyle Hidden"
         );
-        $this->broadcastState();
+        try { $this->broadcastState(); } catch (\Throwable) {}
 
         return response()->json(['ok' => true]);
     }
@@ -165,7 +166,7 @@ class BridgeLabController extends Controller
     public function closeBridge(): JsonResponse
     {
         $this->runDetached('taskkill /F /IM BridgeLab.exe >nul 2>&1');
-        $this->broadcastState();
+        try { $this->broadcastState(); } catch (\Throwable) {}
 
         return response()->json(['ok' => true]);
     }
