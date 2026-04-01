@@ -122,38 +122,18 @@ internal sealed class Program
 
                         var earlyPress = await SendEventAsync(http, press.Channel, isEarly, ct);
 
+                        if (isEarly && !earlyPress)
+                            Console.WriteLine($"[{Now()}] PRESS durante countdown ch{press.Channel} → accettata dal server (check_early disabilitato)");
+                        else if (isEarly)
+                            Console.WriteLine($"[{Now()}] PRESS ANTICIPATA ch{press.Channel} → arancione");
+
+                        // DMX segue la risposta del server, non il timer locale
                         if (dmxOk && DmxController.IsOpen)
                         {
                             if (earlyPress)
-                            {
                                 DmxController.SetLampEarlyPress(cfg.DmxBaseAddress, press.Channel);
-                            }
                             else
-                            {
                                 DmxController.SetLampBooked(cfg.DmxBaseAddress, press.Channel);
-                            }
-                        }
-
-                        if (isEarly)
-                        {
-                            Console.WriteLine($"[{Now()}] PRESS ANTICIPATA ch{press.Channel} → arancione");
-                            Program.Trace($"Early press ch{press.Channel} during countdown");
-
-                            if (dmxOk)
-                                DmxController.SetLampEarlyPress(cfg.DmxBaseAddress, press.Channel);
-                        }
-
-                        // 👇 gestione DMX coerente col server
-                        if (dmxOk && DmxController.IsOpen)
-                        {
-                            if (isEarly || earlyPress)
-                            {
-                                DmxController.SetLampEarlyPress(cfg.DmxBaseAddress, press.Channel);
-                            }
-                            else
-                            {
-                                DmxController.SetLampBooked(cfg.DmxBaseAddress, press.Channel);
-                            }
                         }
                     }
                     catch (TimeoutException) { }

@@ -85,7 +85,7 @@ class BridgeLabController extends Controller
             return response()->json(['ok' => true, 'ignored' => $state['phase']]);
         }
 
-        $isEarly = $data['early'] ?? false;
+        $isEarly = ($state['check_early'] ?? false) && ($data['early'] ?? false);
 
         if ($isEarly) {
             if (! collect($state['early_buzzes'] ?? [])->contains('channel', $channel)) {
@@ -183,13 +183,14 @@ class BridgeLabController extends Controller
     }
 
     /** Open the buzzer: loop animation starts, ready to accept presses */
-    public function open(): JsonResponse
+    public function open(Request $request): JsonResponse
     {
         $state              = $this->getState();
         $state['phase']     = 'open';
         $state['buzzes']    = [];
         $state['early_buzzes'] = [];
         $state['winner']    = null;
+        $state['check_early'] = (bool) $request->input('check_early', false);
         $state['opened_at'] = now()->toIso8601String();
         $state['opened_at_ms'] = now()->getTimestampMs();
         $this->saveState($state);

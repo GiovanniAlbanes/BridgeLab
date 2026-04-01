@@ -429,8 +429,9 @@ function stopCountdown() {
         clearInterval(_cdInterval);
         _cdInterval = null;
     }
-    _cdLastSec   = -1;
-    _cdStartedAt = null; // 👈 fondamentale
+    _cdLastSec = -1;
+    // _cdStartedAt NON va azzerato: serve a ricordare che il countdown
+    // per questo opened_at è già stato mostrato, evitando restart al prossimo broadcast.
 }
 
 function tickCountdown() {
